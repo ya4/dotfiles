@@ -33,7 +33,7 @@ floating_modifier $mod
 bindsym $mod+Return exec xfce4-terminal
 
 # kill focused window
-bindsym $mod+Shift+q kill
+bindsym $mod+q kill
 
 # start dmenu (a program launcher)
 bindsym $mod+d exec dmenu_run
@@ -153,6 +153,10 @@ bindsym $mod+r mode "resize"
 # finds out, if available)
 bar {
         status_command i3status
+        position top
+        tray_output primary
+        tray_padding 2
+        separator_symbol " | "
 }
 
 
@@ -177,11 +181,11 @@ mode "$mode_system" {
 
 bindsym $mod+End mode "$mode_system"
 
-bindsym $mod+XF86MonBrightnessDown exec xbacklight -5
-bindsym $mod+XF86MonBrightnessUp exec xbacklight +5
-bindsym $mod+XF86AudioRaiseVolume exec amixer -c 1 set Master 5+
-bindsym $mod+XF86AudioLowerVolume exec amixer -c 1 set Master 5-
-bindsym $mod+XF86AudioMute exec amixer -D pulse set Master 1+ toggle
-bindsym $mod+XF86Display exec arandr
+bindsym XF86MonBrightnessDown exec xbacklight -5
+bindsym XF86MonBrightnessUp exec xbacklight +5
+bindsym XF86AudioRaiseVolume exec amixer -c 1 set Master 5+
+bindsym XF86AudioLowerVolume exec amixer -c 1 set Master 5-
+bindsym XF86AudioMute exec amixer -D pulse set Master 1+ toggle
+bindsym XF86Display exec arandr
 bindsym $mod+Print exec scrot
 bindsym --release $mod+Shift+Print exec scrot -s
