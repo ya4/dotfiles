@@ -183,3 +183,5 @@ bindsym $mod+XF86AudioRaiseVolume exec amixer -c 1 set Master 5+
 bindsym $mod+XF86AudioLowerVolume exec amixer -c 1 set Master 5-
 bindsym $mod+XF86AudioMute exec amixer -D pulse set Master 1+ toggle
 bindsym $mod+XF86Display exec arandr
+bindsym $mod+Print exec scrot
+bindsym --release $mod+Shift+Print exec scrot -s
