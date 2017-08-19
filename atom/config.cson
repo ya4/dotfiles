@@ -1,0 +1,24 @@
+"*":
+  core:
+    audioBeep: false
+    autoHideMenuBar: true
+    disabledPackages: [
+      "python-tools"
+    ]
+    projectHome: "/home/josh/tools/"
+    telemetryConsent: "limited"
+    themes: [
+      "one-dark-ui"
+      "atom-dark-syntax"
+    ]
+  editor:
+    showIndentGuide: true
+    showInvisibles: true
+  "exception-reporting":
+    userId: "56a4c6e6-6b0f-4602-b3a4-3336e1058a23"
+  "linter-python":
+    executablePath: "/usr/bin/pylama"
+    lintTrigger: "File saved or modified"
+    withPep8: true
+  "linter-ui-default":
+    showPanel: true
