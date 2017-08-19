@@ -1,0 +1,279 @@
+# Passwords
+
+set my_tmpsecret=`gpg2 -o ~/.sec/.tmp -d ~/.sec/pass.gpg`
+set my_gpass1=`awk '/josh\@ya4\.us/ {print $2}' ~/.sec/.tmp`
+set my_gpass2=`awk '/josh\.yavor\@gmail\.com/ {print $2}' ~/.sec/.tmp`
+set my_del=`rm -f ~/.sec/.tmp`
+
+# IMAP basics
+set timeout=60
+set net_inc=1
+set mail_check=60
+unset imap_passive
+set imap_keepalive=120			#poke imap server every two minutes
+
+#---------------#
+# Account Hooks #
+#---------------#
+account-hook . "unset imap_user; unset imap_pass; unset tunnel" # unset first!
+account-hook        "imaps://josh@ya4.us@imap.gmail.com/" "\
+    set imap_user   = josh@ya4.us \
+        imap_pass   = $my_gpass1"
+account-hook        "imaps://josh.yavor@imap.gmail.com/" "\
+    set imap_user   = josh.yavor@gmail.com \
+        imap_pass   = $my_gpass2"
+
+# Folders
+set folder = "imaps://josh@ya4.us@imap.gmail.com/"
+mailboxes = +INBOX =[Gmail]/Drafts =[Gmail]/'Sent Mail' =[Gmail]/Spam =[Gmail]/Trash
+set spoolfile       = +INBOX
+folder-hook         imaps://josh@ya4.us@imap.gmail.com/ "\
+    set folder      = imaps://josh@ya4.us@imap.gmail.com/ \
+        spoolfile   = +INBOX \
+        record		= +[Gmail]/'Sent Mail' \
+        postponed   = +[Gmail]/Drafts \
+        from        = 'Josh Yavor <josh@ya4.us> ' \
+        realname    = 'Josh Yavor' \
+        smtp_url    = smtps://josh@ya4.us@smtp.gmail.com \
+        smtp_pass   = $my_gpass1" \
+        
+# Setup for user2:
+set folder          = imaps://josh.yavor@imap.gmail.com/
+mailboxes           = +INBOX =[Gmail]/Drafts =[Gmail]/'Sent Mail' =[Gmail]/Spam =[Gmail]/Trash
+set spoolfile       = +INBOX
+folder-hook         imaps://user2@imap.gmail.com/ "\
+    set folder      = imaps://user2@imap.gmail.com/ \
+        spoolfile   = +INBOX \
+        postponed   = +[Gmail]/Drafts \
+        record      = +[Gmail]/'Sent Mail' \
+        from        = 'Josh Yavor <josh.yavor@gmail.com> ' \
+        realname    = 'Josh Yavor' \
+        smtp_url    = smtps://josh.yavor@smtp.gmail.com \
+        smtp_pass   = $my_gpass2"
+
+
+set sleep_time=0
+
+set header_cache="~/.mutt/header.cache"
+set message_cachedir="~/.mutt/cache"
+
+# Core crypto
+
+set entropy_file=/dev/urandom
+
+set ssl_starttls=yes
+set ssl_force_tls=yes # FORCE SSL
+
+set crypt_autosign=yes
+set crypt_replysign
+
+# External configs 
+
+set certificate_file="/home/josh/.mutt/certs"
+set alias_file="~/.mutt/.muttalias"
+
+#Composition
+
+set realname="Josh Yavor"        
+set from="josh@ya4.us"        #set to your from address
+source $alias_file
+set charset="utf-8"
+set abort_unmodified=no
+set abort_nosubject=no
+#set postpone=ask-no
+set recall=no
+set edit_headers=yes
+set include=yes                         #quote msg in reply
+set editor="vim"
+set mask="!^\\.[^.]"
+set use_from=yes
+set envelope_from=yes
+set user_agent=no                       #don't send user agent?
+set to_chars=" +TCF"                    #no L for mail_list
+set mime_fwd=ask-no                     # forward attachments
+
+# Custom headers
+
+#my_hdr X-OpenPGP-Key-fingerprint: 31C1 34ED E507 2933 0AC5 C6B9 6E3D AA2C 0727 DB76
+#my_hdr X-OpenPGP-Key-available: http://pgp.mit.edu/pks/lookup?op=get&search=0x6E3DAA2C0727DB76
+
+# Display
+
+set pager_index_lines=10                 #show a mini-index in pager
+set pager_context=1
+set pager_stop=yes
+set menu_scroll
+set pgp_verify_sig=yes                  #dont show pgp in pager
+set pager_format="%-10.10i %[!%a %b %d %R]"
+set date_format="!%H:%M %a %d %b     "
+set index_format="%3C %Z | %22F   %s %> %{%r} %{%D}"
+set folder_format="%2C %t %8s %d %N %f"
+set status_on_top                       #put status line at top
+set status_format="%r %b %f %n sorting: %s       Del: %d      Msgs: #: %m size: %l %> (%P)"
+
+# Attachments
+
+auto_view text/html
+alternative_order text/plain text/enriched text/html
+auto_view application/pdf
+
+# Mailbox
+
+# set sort=reverse-last-date-received
+set sort = threads
+set sort_browser= reverse-date
+set sort_aux = reverse-last-date-received
+set move=no
+
+set check_new=yes                       #check for new mail when open
+set delete=yes                          #delete without prompting
+set fast_reply=yes                      #no prompting on reply
+set beep=no
+set beep_new=no                         #noise
+set markers=no                          #no + on wrapped lines
+set confirmappend=no                    #no prompt for save to =keep
+auto_view text/html
+
+#set imap_check_subscribed
+
+# Bindings
+
+bind index gg  first-entry
+bind index G   last-entry
+
+macro index b '<enter-command>toggle sidebar_visible<enter>' 
+macro pager b '<enter-command>toggle sidebar_visible<enter>' 
+
+bind index B bounce-message
+
+
+macro pager l "<pipe-entry>lynx -stdin -force_html<enter>"
+macro attach l "<pipe-entry>lynx -stdin -force_html<enter>"
+macro index \cd "l~d `date +%d`\n" 'Show daily Messages'
+
+macro index     .i      "l((~N|~O|~F)!~D)|(~d<1w!~Q)\n" 'new,old,flagged but undeleted,unreplied'
+macro index     .n      "l~N\n" 'new messages'
+macro index		.f		"l~F\n" 'flagged messages'
+macro index     .o      "l(~N|~O)\n" 'new and old unread messages'
+macro index     .a      "l~A\n" 'all messages (reset)'
+macro index     .t      "l~d<1d\n" 'todays messages'
+macro index     .d      "l~d<2d|~F\n" 'todays and yesterdays, plus flagged'
+macro index     .y      "l~d<2d ~d>1d\n" 'yesterdays messages'
+folder-hook     .       push '.d'
+
+
+
+bind pager h display-toggle-weed  #toggle headers with h key
+
+# simulate the old url menu
+macro index \cb |urlview\n 'call urlview to extract URLs out of a message'
+macro pager \cb |urlview\n 'call urlview to extract URLs out of a message'
+
+# # take me home now
+macro index H "c?\t"
+macro pager H "c?\t"
+
+# # Jump to first unread message
+bind index \' next-unread # move to the next unread message
+
+# # Refresh files to check-new
+bind browser r check-new # refresh file list on ^L"
+
+# Show me only errors:
+# macro index E "l~N ~b \"([^nN][^oO].error|[Ff][Aa][Ii][Ll])\""
+#
+
+# Header stuff
+ignore *
+unignore From:
+unignore To:
+unignore Reply-To:
+unignore Mail-Followup-To:
+unignore Subject:
+unignore Date:
+unignore Organization:
+unignore Newsgroups:
+unignore CC:
+unignore BCC:
+unignore Message-ID:
+unignore X-Mailer:
+unignore User-Agent:
+hdr_order From: Subject: To: CC: BCC: Reply-To: Mail-Followup-To: Date: Organization: User-Agent: X-Mailer:
+
+set hidden_host=yes
+set hostname="null"
+
+color header brightcyan default "From: "
+color header brightcyan default "Subject: "
+color header brightcyan default "date: "
+
+color hdrdefault 	brightcyan default
+color quoted 		green default
+color signature 	red default
+color header 		brightgreen default "From: "
+color header 		brightgreen default "Subject: "
+color header		brightgreen default "date: "
+color indicator 	white blue
+color attachment 	red default
+color tilde magenta default
+color error 		brightred default
+# top and bottom bars
+color status 		white blue
+color tree 		    white default
+color markers 		white default
+color normal 		white default
+# how to highlight searches in the pager
+color search	default		green
+# Pager stuff
+color index	    white		default	"~p"
+color index     brightred   default "~F"    # Flagged Messages are important!
+color index     green       default "~G|~g" # PGP'd messages
+color index     brightgreen default "~G|~g" # verified messages
+color index     black 		default "~D"    # Deleted Mails use dark color these are already "dealt with"
+
+color body brightmagenta default "(ftp|http|https)://[^ )>]+" # point out URLs
+
+color   quoted  green default
+color   quoted1 cyan default
+color   quoted2 brightblue default
+color   quoted3 blue default
+mono	header	underline       "Subject: "
+mono	header	bold            "From: "
+mono	quoted	bold
+mono    body    underline       "(ftp|http|file|https)://[^ >)]+"
+mono    body    underline       [-a-z_0-9.]+@[-a-z_0-9.]+
+mono    attachment underline
+
+# PGP Stuff
+message-hook '!(~g|~G) ~b"^-----BEGIN\ PGP\ (SIGNED\ )?MESSAGE"' "exec check-traditional-pgp"
+color body green default "-----BEGIN PGP SIGNED MESSAGE-----"
+color body green default "-----BEGIN PGP SIGNATURE-----"
+color body green default "-----END PGP SIGNED MESSAGE-----"
+color body green default "-----END PGP SIGNATURE-----"
+set pgp_decode_command="gpg %?p?--passphrase-fd 0? --verbose --batch --output - %f"
+set pgp_verify_command="gpg --no-verbose --batch --output - --verify %s %f"
+set pgp_decrypt_command="gpg --passphrase-fd 0 --no-verbose --batch --output - %f"
+set pgp_sign_command="gpg --no-verbose --batch --output - --passphrase-fd 0 --armor --detach-sign --textmode %?a?-u %a? %f"
+set pgp_clearsign_command="gpg --no-verbose --batch --output - --passphrase-fd 0 --armor --textmode --clearsign %?a?-u %a? %f"
+set pgp_encrypt_only_command="/usr/bin/pgpewrap gpg --batch --quiet --no-verbose --output - --encrypt --textmode --armor --always-trust --encrypt-to 0x0727DB76 -- -r %r -- %f"
+set pgp_encrypt_sign_command="/usr/bin/pgpewrap gpg --passphrase-fd 0 --batch --quiet --no-verbose --textmode --output - --encrypt --sign %?a?-u %a? --armor --always-trust --encrypt-to 0x0727DB76 -- -r %r -- %f"
+set pgp_import_command="gpg --no-verbose --import -v %f"
+set pgp_export_command="gpg --no-verbose --export --armor %r"
+set pgp_verify_key_command="gpg --no-verbose --batch --fingerprint --check-sigs %r"
+set pgp_list_pubring_command="gpg --no-verbose --batch --with-colons --list-keys %r"
+set pgp_list_secring_command="gpg --no-verbose --batch --with-colons --list-secret-keys %r"
+
+set pgp_autosign=yes
+set pgp_replyencrypt=yes
+set pgp_replysign=yes
+set pgp_timeout=3600
+set pgp_verify_sig=yes
+set pgp_good_sign="^gpg: Good signature from"
+set pgp_sign_as="0x0727DB76"
+
+# S/MIME Crap
+#set smime_is_default = no
+#set smime_ca_location="~/.smime/CA"
+#set smime_certificates ="~/.smime/certificates"
+#set smime_keys = "~/.smime/keys"
+#set smime_sign_as = "266a2f35.0"
