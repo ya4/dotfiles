@@ -189,3 +189,6 @@ bindsym XF86AudioMute exec amixer -D pulse set Master 1+ toggle
 bindsym XF86Display exec arandr
 bindsym $mod+Print exec scrot
 bindsym --release $mod+Shift+Print exec scrot -s
+
+exec_always --no-startup-id feh --randomize --bg-max ~/pictures/backgrounds/*
+
