@@ -191,4 +191,5 @@ bindsym $mod+Print exec scrot
 bindsym --release $mod+Shift+Print exec scrot -s
 
 exec_always --no-startup-id feh --randomize --bg-max ~/pictures/backgrounds/*
+exec_always --no-startup-id compton
 
